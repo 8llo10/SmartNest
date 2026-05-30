@@ -550,3 +550,256 @@ span {
     color: #f9f2f6 !important;
   }
 }
+
+/* WEATHER ATMOSPHERE */
+
+.weatherLayer {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.fog {
+  position: absolute;
+  width: 700px;
+  height: 280px;
+  border-radius: 999px;
+  filter: blur(60px);
+  opacity: 0.4;
+  background: radial-gradient(circle,
+      rgba(255, 255, 255, 0.4),
+      rgba(124, 77, 138, 0.55),
+      rgba(36, 23, 34, 0.75),
+      transparent 80%);
+  animation: fogMove 18s infinite ease-in-out;
+}
+
+.fog1 {
+  top: 5%;
+  left: -15%;
+}
+
+.fog2 {
+  top: 40%;
+  right: -20%;
+  animation-delay: 5s;
+}
+
+.fog3 {
+  bottom: 0;
+  left: 20%;
+  animation-delay: 10s;
+}
+
+@keyframes fogMove {
+
+  0%,
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+
+  50% {
+    transform: translateX(140px) translateY(-30px);
+  }
+}
+
+.weatherLayer.winter .fog {
+  opacity: 0.55;
+}
+
+.weatherLayer.rain .fog {
+  opacity: 0.45;
+}
+
+.weatherLayer.calm .fog {
+  opacity: 0.28;
+}
+
+.weatherLayer.calm .fog {
+  opacity: 0.5;
+  filter: blur(80px);
+}
+
+.weatherLayer.calm .fog1 {
+  background: radial-gradient(circle,
+      rgba(80, 80, 90, 0.45),
+      rgba(36, 23, 34, 0.8),
+      transparent 80%);
+}
+
+.weatherLayer.calm .fog2 {
+  background: radial-gradient(circle,
+      rgba(124, 77, 138, 0.35),
+      rgba(36, 23, 34, 0.85),
+      transparent 80%);
+}
+
+.weatherLayer.calm .fog3 {
+  background: radial-gradient(circle,
+      rgba(111, 24, 54, 0.35),
+      rgba(20, 20, 25, 0.9),
+      transparent 80%);
+}
+
+.snow {
+  position: absolute;
+  inset: -20%;
+  background-image:
+    radial-gradient(circle, white 1.5px, transparent 1.5px),
+    radial-gradient(circle, white 1px, transparent 1px);
+  background-size: 90px 90px, 140px 140px;
+  animation: snowFall 20s linear infinite;
+}
+
+.snow2 {
+  animation-duration: 28s;
+  opacity: 0.25;
+}
+
+.snow3 {
+  animation-duration: 35s;
+  opacity: 0.15;
+}
+
+@keyframes snowFall {
+  from {
+    transform: translateY(-10%);
+  }
+
+  to {
+    transform: translateY(20%);
+  }
+}
+
+.rain {
+  position: absolute;
+  inset: -20%;
+  background-image:
+    linear-gradient(120deg,
+      rgba(255, 255, 255, 0.4) 1px,
+      transparent 1px);
+
+  background-size: 24px 80px;
+
+  animation: rainFall 1s linear infinite;
+}
+
+.rain2 {
+  opacity: 0.25;
+  animation-duration: 1.4s;
+}
+
+@keyframes rainFall {
+  from {
+    transform: translateY(-20%);
+  }
+
+  to {
+    transform: translateY(20%);
+  }
+}
+
+.weatherControls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 25px;
+  position: relative;
+  z-index: 5;
+}
+
+.weatherControls button {
+  border: 0;
+  padding: 12px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  color: #241722;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.25s;
+}
+
+.weatherControls button:hover {
+  background: linear-gradient(135deg,
+      #6f1836,
+      #7c4d8a);
+
+  color: white;
+
+  transform: translateY(-2px);
+}
+
+.themeToggle {
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 10;
+}
+
+.themeToggle button {
+  border: 0;
+  padding: 12px 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg,
+      #6f1836,
+      #7c4d8a);
+  color: white;
+  font-weight: 600;
+}
+
+/* DARK MODE */
+
+.dark {
+  background: linear-gradient(135deg,
+      #131116,
+      #1b1720,
+      #241722);
+}
+
+.dark .sidebar {
+  background: rgba(20, 20, 25, 0.75);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dark .card,
+.dark .device,
+.dark .search,
+.dark .outline,
+.dark .filter,
+.dark .setting,
+.dark .lockItem,
+.dark .scene {
+  background: rgba(35, 35, 40, 0.75);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark .brand h1,
+.dark .topbar h1,
+.dark .card h2,
+.dark .card h3,
+.dark .device h2,
+.dark .device h3 {
+  color: #ffffff !important;
+}
+
+.dark p,
+.dark span,
+.dark b {
+  color: #d4cfd7 !important;
+}
+
+.dark .icon {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dark .search input {
+  color: white;
+}
+
+.dark .weatherControls button {
+  background: rgba(40, 40, 45, 0.8);
+  color: white;
+}

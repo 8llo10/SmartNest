@@ -4,7 +4,7 @@ import {
   Home, Users, Layers3, Lightbulb, ShieldCheck, Zap, Settings,
   Sofa, ChefHat, Trees, CloudFog, BedDouble, Car, Lock, Unlock,
   Thermometer, Camera, Fan, Droplets, DoorOpen, Bell, Search,
-  Moon, Sun, UserRound, Power, Wifi
+  Moon, Sun, UserRound, Power, Wifi, CloudRain, Snowflake, Wind
 } from "lucide-react";
 import "./App.css";
 
@@ -66,7 +66,6 @@ function Sidebar({ page, setPage }) {
           <div className="brandIcon"><Home /></div>
           <div>
             <h1>SmartNest</h1>
-            <p>Large Family Villa</p>
           </div>
         </div>
 
@@ -290,18 +289,63 @@ function SettingsPage() {
   );
 }
 
+function WeatherAtmosphere({ weather }) {
+  return (
+    <div className={`weatherLayer ${weather}`}>
+      <div className="fog fog1" />
+      <div className="fog fog2" />
+      <div className="fog fog3" />
+
+      {weather === "winter" && (
+        <>
+          <div className="snow snow1" />
+          <div className="snow snow2" />
+          <div className="snow snow3" />
+        </>
+      )}
+
+      {weather === "rain" && (
+        <>
+          <div className="rain rain1" />
+          <div className="rain rain2" />
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const [page, setPage] = useState("Dashboard");
+  const [darkMode, setDarkMode] = useState(false);
+  const [weather, setWeather] = useState("winter");
 
   return (
-    <div className="app">
-      <div className="glow glow1" />
-      <div className="glow glow2" />
+    <div className={darkMode ? "app dark" : "app"}>
+      <WeatherAtmosphere weather={weather} />
 
       <Sidebar page={page} setPage={setPage} />
 
       <main className="main">
+        <div className="themeToggle">
+          <button onClick={() => setDarkMode(!darkMode)}>
+            {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+          </button>
+        </div>
         <Header />
+
+        <div className="weatherControls">
+          <button onClick={() => setWeather("winter")}>
+            <Snowflake size={16} /> Winter Fog
+          </button>
+
+          <button onClick={() => setWeather("rain")}>
+            <CloudRain size={16} /> Rain Mode
+          </button>
+
+          <button onClick={() => setWeather("calm")}>
+            <Wind size={16} /> Calm Smoke
+          </button>
+        </div>
         {page === "Dashboard" && <Dashboard />}
         {page === "Family" && <Family />}
         {page === "Rooms" && <Rooms />}

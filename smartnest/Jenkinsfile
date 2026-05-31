@@ -2,27 +2,27 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
-            steps {
-                echo 'Checking out SmartNest source code...'
-            }
-        }
-
         stage('Install Dependencies') {
             steps {
-                bat 'npm install'
+                dir('smartnest') {
+                    bat 'npm install'
+                }
             }
         }
 
         stage('Build') {
             steps {
-                bat 'npm run build'
+                dir('smartnest') {
+                    bat 'npm run build'
+                }
             }
         }
 
         stage('Docker Build') {
             steps {
-                bat 'docker build -t smartnest .'
+                dir('smartnest') {
+                    bat 'docker build -t smartnest .'
+                }
             }
         }
 

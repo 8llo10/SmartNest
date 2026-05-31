@@ -1,11 +1,26 @@
 pipeline {
     agent any
 
+    environment {
+        APP_NAME = "SmartNest"
+        IMAGE_NAME = "smartnest"
+        CONTAINER_NAME = "smartnest-container"
+        APP_PORT = "3000"
+    }
+
     stages {
         stage('Install Dependencies') {
             steps {
                 dir('smartnest') {
                     bat 'npm install'
+                }
+            }
+        }
+
+        stage('Test / Code Quality') {
+            steps {
+                dir('smartnest') {
+                    bat 'npm run lint'
                 }
             }
         }
@@ -21,16 +36,26 @@ pipeline {
         stage('Docker Build') {
             steps {
                 dir('smartnest') {
-                    bat 'docker build -t smartnest .'
+                    bat 'docker build -t %IMAGE_NAME% .'
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                bat 'docker rm -f smartnest-container || exit 0'
-                bat 'docker run -d -p 3000:80 --name smartnest-container smartnest'
+                bat 'docker rm -f %CONTAINER_NAME% || exit 0'
+                bat 'docker run -d -p %APP_PORT%:80 --name %CONTAINER_NAME% %IMAGE_NAME%'
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'SmartNest pipeline completed successfully.'
+        }
+
+        failure {
+            echo 'SmartNest pipeline failed. Deployment was stopped.'
         }
     }
 }

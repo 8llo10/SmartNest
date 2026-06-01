@@ -1,6 +1,15 @@
 pipeline {
     agent any
 
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    parameters {
+        booleanParam(name: 'RUN_DEPLOY', defaultValue: true, description: 'Run Deploy stage after packaging')
+    }
+
     environment {
         APP_NAME = "SmartNest"
         IMAGE_NAME = "smartnest"
@@ -9,18 +18,16 @@ pipeline {
     }
 
     stages {
-        stage('Install Dependencies') {
+        stage('Install') {
             steps {
                 dir('smartnest') {
-                    bat 'npm install'
-                }
-            }
-        }
-
-        stage('Test / Code Quality') {
-            steps {
-                dir('smartnest') {
-                    bat 'npm run lint'
+                    script {
+                        if (isUnix()) {
+                            sh 'npm ci || npm install'
+                        } else {
+                            bat 'call npm ci || call npm install'
+                        }
+                    }
                 }
             }
         }
@@ -28,35 +35,80 @@ pipeline {
         stage('Build') {
             steps {
                 dir('smartnest') {
-                    bat 'npm run build'
+                    script {
+                        if (isUnix()) {
+                            sh 'npm run build'
+                        } else {
+                            bat 'call npm run build'
+                        }
+                    }
                 }
             }
         }
 
-        stage('Docker Build') {
+        stage('Test') {
             steps {
                 dir('smartnest') {
-                    bat 'docker build -t %IMAGE_NAME% .'
+                    script {
+                        if (isUnix()) {
+                            sh 'npm test'
+                        } else {
+                            bat 'call npm test'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                dir('smartnest') {
+                    script {
+                        if (isUnix()) {
+                            sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
+                            sh "docker save -o ${IMAGE_NAME}-${BUILD_NUMBER}.tar ${IMAGE_NAME}:${BUILD_NUMBER}"
+                        } else {
+                            bat "docker build -t %IMAGE_NAME%:%BUILD_NUMBER% ."
+                            bat "docker save -o %IMAGE_NAME%-%BUILD_NUMBER%.tar %IMAGE_NAME%:%BUILD_NUMBER%"
+                        }
+                    }
                 }
             }
         }
 
         stage('Deploy') {
+            when {
+                expression { return params.RUN_DEPLOY }
+            }
             steps {
-                bat 'docker rm -f %CONTAINER_NAME% || exit 0'
-                bat 'docker run -d -p %APP_PORT%:80 --name %CONTAINER_NAME% %IMAGE_NAME%'
+                script {
+                    if (isUnix()) {
+                        sh '''
+                            if docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
+                                docker rm -f "${CONTAINER_NAME}"
+                            fi
+                            docker run -d --name "${CONTAINER_NAME}" -p "${APP_PORT}:80" "${IMAGE_NAME}:${BUILD_NUMBER}"
+                        '''
+                    } else {
+                        bat '''
+                            for /f "tokens=*" %%i in ('docker ps -a --format "{{.Names}}" ^| findstr /r /c:"^%CONTAINER_NAME%$"') do docker rm -f %CONTAINER_NAME%
+                            docker run -d --name %CONTAINER_NAME% -p %APP_PORT%:80 %IMAGE_NAME%:%BUILD_NUMBER%
+                        '''
+                    }
+                }
             }
         }
     }
 
     post {
+        always {
+            archiveArtifacts artifacts: 'smartnest/dist/**, smartnest/*.tar', allowEmptyArchive: true
+        }
         success {
             echo 'SmartNest pipeline completed successfully.'
         }
-
         failure {
-            echo 'SmartNest pipeline failed. Deployment was stopped.'
+            echo 'SmartNest pipeline failed. Fix the failed stage, then re-run the pipeline.'
         }
     }
-    
 }

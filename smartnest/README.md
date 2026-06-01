@@ -1,16 +1,57 @@
-# React + Vite
+# SmartNest App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SmartNest is a React + Vite smart-home dashboard used as the DevOps target app for Jenkins CI/CD practice.
 
-Currently, two official plugins are available:
+## Local development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev
+```
 
-## React Compiler
+## Production build
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm run build
+npm test
+```
 
-## Expanding the ESLint configuration
+> `npm test` runs lint checks as the quality gate.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Docker
+
+Build and run:
+```bash
+docker build -t smartnest:local .
+docker run -d -p 3000:80 --name smartnest-container smartnest:local
+```
+
+Open: `http://localhost:3000`
+
+## Jenkins pipeline
+
+Pipeline file: `smartnest/Jenkinsfile` (repository root script path)
+
+Stages:
+1. Install
+2. Build
+3. Test
+4. Package
+5. Deploy
+
+Parameter:
+- `RUN_DEPLOY` (boolean): allow skipping deploy for dry runs.
+
+Artifacts:
+- `smartnest/dist/**`
+- `smartnest/*.tar`
+
+## Demo/testing docs
+
+- `docs/GHLO_DEMO_RUNBOOK.md`
+- `docs/GHLO_PIPELINE_RESULTS.md`
+
+## Smoke pipeline scripts
+
+- Linux/macOS: `scripts/pipeline-smoke.sh`
+- Windows: `scripts/pipeline-smoke.cmd`

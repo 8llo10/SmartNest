@@ -30,7 +30,7 @@ Open: `http://localhost:3000`
 
 ## Jenkins pipeline
 
-Pipeline file: `smartnest/Jenkinsfile` (repository root script path)
+Pipeline file: `Jenkinsfile` (repository root script path)
 
 Stages:
 1. Install
@@ -43,8 +43,8 @@ Parameter:
 - `RUN_DEPLOY` (boolean): allow skipping deploy for dry runs.
 
 Artifacts:
-- `smartnest/dist/**`
-- `smartnest/*.tar`
+- `dist/**`
+- `*.tar`
 
 ## Demo/testing docs
 

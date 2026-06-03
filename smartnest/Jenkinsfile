@@ -8,6 +8,11 @@ pipeline {
 
     parameters {
         booleanParam(name: 'RUN_DEPLOY', defaultValue: true, description: 'Run Deploy stage after packaging')
+        booleanParam(name: 'SIMULATE_TEST_FAILURE', defaultValue: false, description: 'Demo failure handling by failing in the Test stage')
+    }
+
+    triggers {
+        cron('H H * * *')
     }
 
     environment {
@@ -15,18 +20,17 @@ pipeline {
         IMAGE_NAME = "smartnest"
         CONTAINER_NAME = "smartnest-container"
         APP_PORT = "3000"
+        PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
     }
 
     stages {
         stage('Install') {
             steps {
-                dir('smartnest') {
-                    script {
-                        if (isUnix()) {
-                            sh 'npm ci || npm install'
-                        } else {
-                            bat 'call npm ci || call npm install'
-                        }
+                script {
+                    if (isUnix()) {
+                        sh 'npm ci || npm install'
+                    } else {
+                        bat 'call npm ci || call npm install'
                     }
                 }
             }
@@ -34,13 +38,11 @@ pipeline {
 
         stage('Build') {
             steps {
-                dir('smartnest') {
-                    script {
-                        if (isUnix()) {
-                            sh 'npm run build'
-                        } else {
-                            bat 'call npm run build'
-                        }
+                script {
+                    if (isUnix()) {
+                        sh 'npm run build'
+                    } else {
+                        bat 'call npm run build'
                     }
                 }
             }
@@ -48,13 +50,19 @@ pipeline {
 
         stage('Test') {
             steps {
-                dir('smartnest') {
-                    script {
+                script {
+                    if (params.SIMULATE_TEST_FAILURE) {
                         if (isUnix()) {
-                            sh 'npm test'
+                            sh 'echo "Simulating test failure for failure-handling demo" && exit 1'
                         } else {
-                            bat 'call npm test'
+                            bat 'echo Simulating test failure for failure-handling demo && exit /b 1'
                         }
+                    }
+
+                    if (isUnix()) {
+                        sh 'npm test'
+                    } else {
+                        bat 'call npm test'
                     }
                 }
             }
@@ -62,15 +70,13 @@ pipeline {
 
         stage('Package') {
             steps {
-                dir('smartnest') {
-                    script {
-                        if (isUnix()) {
-                            sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
-                            sh "docker save -o ${IMAGE_NAME}-${BUILD_NUMBER}.tar ${IMAGE_NAME}:${BUILD_NUMBER}"
-                        } else {
-                            bat "docker build -t %IMAGE_NAME%:%BUILD_NUMBER% ."
-                            bat "docker save -o %IMAGE_NAME%-%BUILD_NUMBER%.tar %IMAGE_NAME%:%BUILD_NUMBER%"
-                        }
+                script {
+                    if (isUnix()) {
+                        sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
+                        sh "docker save -o ${IMAGE_NAME}-${BUILD_NUMBER}.tar ${IMAGE_NAME}:${BUILD_NUMBER}"
+                    } else {
+                        bat "docker build -t %IMAGE_NAME%:%BUILD_NUMBER% ."
+                        bat "docker save -o %IMAGE_NAME%-%BUILD_NUMBER%.tar %IMAGE_NAME%:%BUILD_NUMBER%"
                     }
                 }
             }
@@ -102,7 +108,7 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: 'smartnest/dist/**, smartnest/*.tar', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'dist/**, *.tar', allowEmptyArchive: true
         }
         success {
             echo 'SmartNest pipeline completed successfully.'

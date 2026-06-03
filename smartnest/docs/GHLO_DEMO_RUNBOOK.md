@@ -10,7 +10,7 @@ This runbook covers GHLO responsibilities:
 
 - Jenkins service is running.
 - Docker engine is running.
-- Jenkins job points to repository root and uses `smartnest/Jenkinsfile`.
+- Jenkins job points to repository root and uses `Jenkinsfile`.
 - Node.js LTS and npm are available on Jenkins agent.
 - Port `3000` is free on the deployment machine.
 
@@ -26,8 +26,8 @@ This runbook covers GHLO responsibilities:
    - Deploy
 4. After success, open `http://<jenkins-host>:3000` and show SmartNest running.
 5. Show archived artifacts:
-   - `smartnest/dist/**`
-   - `smartnest/*.tar`
+   - `dist/**`
+   - `*.tar`
 6. Trigger one more build to prove repeatability.
 
 ## 3) Failure/recovery mini-scenario (recommended)

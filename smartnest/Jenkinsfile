@@ -27,10 +27,13 @@ pipeline {
         stage('Install') {
             steps {
                 script {
-                    if (isUnix()) {
-                        sh 'npm ci || npm install'
-                    } else {
-                        bat 'call npm ci || call npm install'
+                    def appDir = fileExists('package.json') ? '.' : 'smartnest'
+                    dir(appDir) {
+                        if (isUnix()) {
+                            sh 'npm ci || npm install'
+                        } else {
+                            bat 'call npm ci || call npm install'
+                        }
                     }
                 }
             }
@@ -39,10 +42,13 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    if (isUnix()) {
-                        sh 'npm run build'
-                    } else {
-                        bat 'call npm run build'
+                    def appDir = fileExists('package.json') ? '.' : 'smartnest'
+                    dir(appDir) {
+                        if (isUnix()) {
+                            sh 'npm run build'
+                        } else {
+                            bat 'call npm run build'
+                        }
                     }
                 }
             }
@@ -51,18 +57,21 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    if (params.SIMULATE_TEST_FAILURE) {
-                        if (isUnix()) {
-                            sh 'echo "Simulating test failure for failure-handling demo" && exit 1'
-                        } else {
-                            bat 'echo Simulating test failure for failure-handling demo && exit /b 1'
+                    def appDir = fileExists('package.json') ? '.' : 'smartnest'
+                    dir(appDir) {
+                        if (params.SIMULATE_TEST_FAILURE) {
+                            if (isUnix()) {
+                                sh 'echo "Simulating test failure for failure-handling demo" && exit 1'
+                            } else {
+                                bat 'echo Simulating test failure for failure-handling demo && exit /b 1'
+                            }
                         }
-                    }
 
-                    if (isUnix()) {
-                        sh 'npm test'
-                    } else {
-                        bat 'call npm test'
+                        if (isUnix()) {
+                            sh 'npm test'
+                        } else {
+                            bat 'call npm test'
+                        }
                     }
                 }
             }
@@ -71,12 +80,15 @@ pipeline {
         stage('Package') {
             steps {
                 script {
-                    if (isUnix()) {
-                        sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
-                        sh "docker save -o ${IMAGE_NAME}-${BUILD_NUMBER}.tar ${IMAGE_NAME}:${BUILD_NUMBER}"
-                    } else {
-                        bat "docker build -t %IMAGE_NAME%:%BUILD_NUMBER% ."
-                        bat "docker save -o %IMAGE_NAME%-%BUILD_NUMBER%.tar %IMAGE_NAME%:%BUILD_NUMBER%"
+                    def appDir = fileExists('package.json') ? '.' : 'smartnest'
+                    dir(appDir) {
+                        if (isUnix()) {
+                            sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
+                            sh "docker save -o ${IMAGE_NAME}-${BUILD_NUMBER}.tar ${IMAGE_NAME}:${BUILD_NUMBER}"
+                        } else {
+                            bat "docker build -t %IMAGE_NAME%:%BUILD_NUMBER% ."
+                            bat "docker save -o %IMAGE_NAME%-%BUILD_NUMBER%.tar %IMAGE_NAME%:%BUILD_NUMBER%"
+                        }
                     }
                 }
             }
@@ -88,18 +100,21 @@ pipeline {
             }
             steps {
                 script {
-                    if (isUnix()) {
-                        sh '''
-                            if docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
-                                docker rm -f "${CONTAINER_NAME}"
-                            fi
-                            docker run -d --name "${CONTAINER_NAME}" -p "${APP_PORT}:80" "${IMAGE_NAME}:${BUILD_NUMBER}"
-                        '''
-                    } else {
-                        bat '''
-                            for /f "tokens=*" %%i in ('docker ps -a --format "{{.Names}}" ^| findstr /r /c:"^%CONTAINER_NAME%$"') do docker rm -f %CONTAINER_NAME%
-                            docker run -d --name %CONTAINER_NAME% -p %APP_PORT%:80 %IMAGE_NAME%:%BUILD_NUMBER%
-                        '''
+                    def appDir = fileExists('package.json') ? '.' : 'smartnest'
+                    dir(appDir) {
+                        if (isUnix()) {
+                            sh '''
+                                if docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
+                                    docker rm -f "${CONTAINER_NAME}"
+                                fi
+                                docker run -d --name "${CONTAINER_NAME}" -p "${APP_PORT}:80" "${IMAGE_NAME}:${BUILD_NUMBER}"
+                            '''
+                        } else {
+                            bat '''
+                                for /f "tokens=*" %%i in ('docker ps -a --format "{{.Names}}" ^| findstr /r /c:"^%CONTAINER_NAME%$"') do docker rm -f %CONTAINER_NAME%
+                                docker run -d --name %CONTAINER_NAME% -p %APP_PORT%:80 %IMAGE_NAME%:%BUILD_NUMBER%
+                            '''
+                        }
                     }
                 }
             }
@@ -108,7 +123,7 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: 'dist/**, *.tar', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'dist/**, *.tar, smartnest/dist/**, smartnest/*.tar', allowEmptyArchive: true
         }
         success {
             echo 'SmartNest pipeline completed successfully.'
